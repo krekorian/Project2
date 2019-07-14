@@ -29,14 +29,21 @@ app.use(flash());
 var models = require("./app/models");
 require("./app/config/passport/passport.js")(passport, models.user);
 //Sync Database
-models.sequelize
-  .sync()
-  .then(function() {
-    console.log("Nice! Database looks fine");
-  })
-  .catch(function(err) {
-    console.log(err, "Something went wrong with the Database Update!");
-  });
+
+var connection;
+
+if (process.env.JAWSDB_URL) {
+  connection = mysql.createConnection(process.env.JAWSDB_URL);
+} else {
+  connection = models.sequelize
+    .sync()
+    .then(function() {
+      console.log("Nice! Database looks fine");
+    })
+    .catch(function(err) {
+      console.log(err, "Something went wrong with the Database Update!");
+    });
+}
 var authRoute = require("./app/routes/auth.js")(app, passport);
 var requestRoute = require("./app/routes/request")(app, passport);
 
@@ -49,7 +56,7 @@ app.engine(
 );
 app.set("view engine", ".hbs");
 
-app.listen(5000, function(err) {
+app.listen(process.env.PORT || 5000, function(err) {
   if (!err) console.log("Site is live");
   else console.log(err);
 });

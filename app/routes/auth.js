@@ -1,52 +1,44 @@
-var authController = require('../controllers/authcontroller.js');
+var authController = require("../controllers/authcontroller.js");
 // var requestController = require('../controllers/requestcontroller.js/index.js');
-module.exports = function (app, passport) {
-    app.get('/', isLoggedIn, authController.dashboard);
+module.exports = function(app, passport) {
+  app.get("/", isLoggedIn, authController.dashboard);
 
-    app.get('/signup', isLoggedIn, authController.signup);
-    app.get('/signin', authController.signin);
+  app.get("/signup", authController.signup);
+  app.get("/signin", authController.signin);
 
+  // app.post('/signup', isLoggedIn, authController.signup);
 
-    // app.post('/signup', isLoggedIn, authController.signup);
+  app.post(
+    "/signup",
+    passport.authenticate(
+      "local-signup",
 
+      {
+        successRedirect: "/dashboard",
 
-    app.post('/signup', isLoggedIn, passport.authenticate('local-signup'
+        failureRedirect: "/signup",
+        failureFlash: true
+      }
+    )
+  );
 
-        , {
-            successRedirect: '/dashboard',
+  app.get("/dashboard", isLoggedIn, authController.dashboard);
+  //logout router
 
-            failureRedirect: '/signup',
-            failureFlash: true
+  app.get("/logout", authController.logout);
 
-        }
+  app.post(
+    "/signin",
+    passport.authenticate("local-signin", {
+      successRedirect: "/dashboard",
 
-    ));
+      failureRedirect: "/signin"
+    })
+  );
 
+  function isLoggedIn(req, res, next) {
+    if (req.isAuthenticated()) return next();
 
-    app.get('/dashboard', isLoggedIn, authController.dashboard);
-    //logout router
-
-    app.get('/logout', authController.logout);
-
-
-    app.post('/signin', passport.authenticate('local-signin', {
-        successRedirect: '/dashboard',
-
-        failureRedirect: '/signin'
-
-    }
-
-    ));
-
-    function isLoggedIn(req, res, next) {
-
-        if (req.isAuthenticated())
-
-            return next();
-
-        res.redirect('/signin');
-
-    }
-
-}
-
+    res.redirect("/signin");
+  }
+};
